@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
-const { Configuration, OpenAIApi } = require("openai");
+const OpenAI = require("openai");
 require("dotenv").config();
 
 const app = express();
@@ -12,23 +12,20 @@ app.use(express.static("uploads"));
 
 const upload = multer({ dest: "uploads/" });
 
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
 
 app.post("/api/generate", async (req, res) => {
   try {
     const { prompt } = req.body;
-
-    const response = await openai.createImage({
+    const response = await openai.images.generate({
+      model: "dall-e-3",
       prompt,
       n: 1,
-      size: "1024x1024",
-      model: "dall-e-3"
+      size: "1024x1024"
     });
-
-    const imageUrl = response.data.data[0].url;
+    const imageUrl = response.data[0].url;
     res.json({ text: `Generated for prompt: '${prompt}'`, image_url: imageUrl });
   } catch (err) {
     console.error(err);
