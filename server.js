@@ -17,28 +17,32 @@ const openai = new OpenAI({
 });
 
 app.post("/api/generate", async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt) return res.status(400).json({ error: "Prompt is required" });
+
   try {
-    const { prompt } = req.body;
     const response = await openai.images.generate({
       model: "dall-e-3",
       prompt,
       n: 1,
       size: "1024x1024"
     });
+
     const imageUrl = response.data[0].url;
-    res.json({ text: `Generated for prompt: '${prompt}'`, image_url: imageUrl });
-  } catch (err) {
-    console.error(err);
+    res.json({ text: `Generated image for: "${prompt}"`, image_url: imageUrl });
+  } catch (error) {
+    console.error("Image generation failed:", error);
     res.status(500).json({ error: "Image generation failed" });
   }
 });
 
-app.post("/api/upload", upload.single("image"), (req, res) => {
+app.post("/api/upload", upload.single("file"), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "No file uploaded" });
   const imageUrl = `${req.protocol}://${req.get("host")}/${req.file.filename}`;
   res.json({ imageUrl });
 });
 
+app.get("/health", (req, res) => res.send("Server is healthy"));
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Vision Build backend running on port ${PORT}`));

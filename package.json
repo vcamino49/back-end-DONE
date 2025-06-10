@@ -1,5 +1,5 @@
 {
-  "name": "visionbuilder-backend",
+  "name": "vision-build-backend",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
