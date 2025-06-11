@@ -30,7 +30,11 @@ async function upscaleImage(imageUrl) {
   });
 
   const prediction = await response.json();
-  const statusUrl = prediction.urls.get;
+  if (!prediction.urls || !prediction.urls.get) {
+  throw new Error("Replicate prediction failed or is invalid.");
+}
+const statusUrl = prediction.urls.get;
+
 
   // Poll until finished
   let output;
