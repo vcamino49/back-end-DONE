@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
+const fetch = require("node-fetch");
 const OpenAI = require("openai");
 require("dotenv").config();
 
@@ -14,24 +15,63 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Upscale function using Replicate Real-ESRGAN
+async function upscaleImage(imageUrl) {
+  const response = await fetch("https://api.replicate.com/v1/predictions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Token ${process.env.REPLICATE_API_TOKEN}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      version: "9282c7318a7e34f732e01d02b9c50e4debb28cfa939397b5c0c3b2d3b2e6fb7c",
+      input: { image: imageUrl }
+    })
+  });
+
+  const prediction = await response.json();
+  const statusUrl = prediction.urls.get;
+
+  // Poll until finished
+  let output;
+  for (let i = 0; i < 10; i++) {
+    const statusRes = await fetch(statusUrl, {
+      headers: { Authorization: `Token ${process.env.REPLICATE_API_TOKEN}` }
+    });
+    const statusData = await statusRes.json();
+    if (statusData.status === "succeeded") {
+      output = statusData.output;
+      break;
+    } else if (statusData.status === "failed") {
+      throw new Error("Upscaling failed");
+    }
+    await new Promise(r => setTimeout(r, 2000));
+  }
+
+  return output;
+}
+
 app.post("/api/generate", async (req, res) => {
   const { prompt } = req.body;
   if (!prompt) return res.status(400).json({ error: "Prompt is required" });
 
   try {
-    const response = await openai.images.generate({
+    const aiResponse = await openai.images.generate({
       model: "dall-e-3",
       prompt,
       n: 1,
-      size: "1024x1024",
+      size: "1024x1024"
     });
 
-    console.log("OpenAI Image Generated:", response.data[0]);
+    const originalUrl = aiResponse.data[0].url;
+    const highResUrl = await upscaleImage(originalUrl);
 
-    const imageUrl = response.data[0].url;
-    res.json({ text: `Generated image for: "${prompt}"`, image_url: imageUrl });
+    res.json({
+      text: `Generated high-res image for: "${prompt}"`,
+      image_url: highResUrl
+    });
   } catch (error) {
-    console.error("OpenAI error:", error);
+    console.error("Image generation or upscaling failed:", error);
     res.status(500).json({ error: "Image generation failed" });
   }
 });
@@ -45,4 +85,4 @@ app.post("/api/upload", upload.single("file"), (req, res) => {
 app.get("/health", (req, res) => res.send("Server is healthy"));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`✅ Vision Build backend running on port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Vision Build backend with upscaling running on port ${PORT}`));
