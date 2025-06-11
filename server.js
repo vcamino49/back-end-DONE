@@ -17,26 +17,27 @@ const openai = new OpenAI({
 
 // Upscale function using Replicate Real-ESRGAN
 async function upscaleImage(imageUrl) {
-  const response = await fetch("https://api.replicate.com/v1/predictions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Token ${process.env.REPLICATE_API_TOKEN}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      version: "9282c7318a7e34f732e01d02b9c50e4debb28cfa939397b5c0c3b2d3b2e6fb7c",
-      input: { image: imageUrl }
-    })
-  });
+  try {
+    const response = await fetch("https://api.replicate.com/v1/predictions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Token ${process.env.REPLICATE_API_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        version: "9282c7318a7e34f732e01d02b9c50e4debb28cfa939397b5c0c3b2d3b2e6fb7c",
+        input: { image: imageUrl }
+      })
+    });
 
-  const prediction = await response.json();
-  console.log("🐛 Raw Replicate response:", prediction); // <== Add this line
+    const prediction = await response.json();
+    console.log("🐛 Raw Replicate response:", JSON.stringify(prediction, null, 2)); // 🧠 Force log as string
 
-  if (!prediction.urls || !prediction.urls.get) {
-    throw new Error("Replicate prediction failed or is invalid.");
-  }
+    if (!prediction.urls || !prediction.urls.get) {
+      throw new Error("Replicate prediction failed or is invalid.");
+    }
 
-  const statusUrl = prediction.urls.get;
+    const statusUrl = prediction.urls.get;
 
   let output;
   for (let i = 0; i < 10; i++) {
