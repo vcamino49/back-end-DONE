@@ -24,8 +24,7 @@ async function upscaleImage(imageUrl) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      version: "9eaa80e53c6343e18543a291da04b5e7b3fd2c8e05a5f3a2c610cf0da0c19907",
-
+      version: "f121d640bd286e1fdc67f9799164c1d5be36ff74576ee11c803ae5b665dd46aa",
       input: { image: imageUrl }
     })
   });
