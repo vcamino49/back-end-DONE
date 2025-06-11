@@ -30,18 +30,14 @@ async function upscaleImage(imageUrl) {
   });
 
   const prediction = await response.json();
+  console.log("🐛 Raw Replicate response:", prediction); // <== Add this line
+
   if (!prediction.urls || !prediction.urls.get) {
-  throw new Error("Replicate prediction failed or is invalid.");
-}
-if (!prediction.urls || !prediction.urls.get) {
-  console.error("⚠️ Replicate returned invalid prediction:", prediction);
-  throw new Error("Replicate prediction failed.");
-}
-const statusUrl = prediction.urls.get;
-;
+    throw new Error("Replicate prediction failed or is invalid.");
+  }
 
+  const statusUrl = prediction.urls.get;
 
-  // Poll until finished
   let output;
   for (let i = 0; i < 10; i++) {
     const statusRes = await fetch(statusUrl, {
@@ -59,6 +55,7 @@ const statusUrl = prediction.urls.get;
 
   return output;
 }
+
 
 app.post("/api/generate", async (req, res) => {
   const { prompt } = req.body;
