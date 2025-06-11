@@ -56,7 +56,7 @@ async function upscaleImage(imageUrl) {
   return output;
 }
 
-}
+
 
 
 app.post("/api/generate", async (req, res) => {
