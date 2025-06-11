@@ -71,9 +71,17 @@ app.post("/api/generate", async (req, res) => {
       image_url: highResUrl
     });
   } catch (error) {
-    console.error("Image generation or upscaling failed:", error);
-    res.status(500).json({ error: "Image generation failed" });
+  console.error("Image generation or upscaling failed:", error);
+
+  if (error.response && typeof error.response.json === "function") {
+    error.response.json().then((json) => {
+      console.error("🔍 OpenAI response error:", json);
+    });
   }
+
+  res.status(500).json({ error: "Image generation failed" });
+}
+
 });
 
 app.post("/api/upload", upload.single("file"), (req, res) => {
