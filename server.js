@@ -33,7 +33,12 @@ async function upscaleImage(imageUrl) {
   if (!prediction.urls || !prediction.urls.get) {
   throw new Error("Replicate prediction failed or is invalid.");
 }
+if (!prediction.urls || !prediction.urls.get) {
+  console.error("⚠️ Replicate returned invalid prediction:", prediction);
+  throw new Error("Replicate prediction failed.");
+}
 const statusUrl = prediction.urls.get;
+;
 
 
   // Poll until finished
