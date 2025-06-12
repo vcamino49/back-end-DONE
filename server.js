@@ -1,10 +1,9 @@
-import express from "express";
-import cors from "cors";
-import multer from "multer";
-import Replicate from "replicate";
-import OpenAI from "openai";
-import dotenv from "dotenv";
-dotenv.config();
+const express = require("express");
+const cors = require("cors");
+const multer = require("multer");
+const fetch = require("node-fetch");
+const OpenAI = require("openai");
+require("dotenv").config();
 
 const app = express();
 app.use(cors());
@@ -16,23 +15,44 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN,
-});
-
 async function upscaleImage(imageUrl) {
-  try {
-    const output = await replicate.run(
-      "nightmareai/real-esrgan",
-      {
-        input: { image: imageUrl }
-      }
-    );
-    return output;
-  } catch (err) {
-    console.error("🛑 Replicate SDK error:", err);
-    throw new Error("Upscaling failed using Replicate SDK.");
+  const response = await fetch("https://api.replicate.com/v1/predictions", {
+    method: "POST",
+    headers: {
+      Authorization: `Token ${process.env.REPLICATE_API_TOKEN}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      version: "9282c7318a7e34f732e01d02b9c50e4debb28cfa939397b5c0c3b2d3b2e6fb7c",
+      input: { image: imageUrl }
+    })
+  });
+
+  const prediction = await response.json();
+  console.log("🐛 Raw Replicate response:", JSON.stringify(prediction, null, 2));
+
+  if (!prediction.urls || !prediction.urls.get) {
+    throw new Error("Replicate prediction failed or is invalid.");
   }
+
+  const statusUrl = prediction.urls.get;
+
+  let output;
+  for (let i = 0; i < 10; i++) {
+    const statusRes = await fetch(statusUrl, {
+      headers: { Authorization: `Token ${process.env.REPLICATE_API_TOKEN}` }
+    });
+    const statusData = await statusRes.json();
+    if (statusData.status === "succeeded") {
+      output = statusData.output;
+      break;
+    } else if (statusData.status === "failed") {
+      throw new Error("Upscaling failed");
+    }
+    await new Promise(r => setTimeout(r, 2000));
+  }
+
+  return output;
 }
 
 app.post("/api/generate", async (req, res) => {
@@ -69,4 +89,4 @@ app.post("/api/upload", upload.single("file"), (req, res) => {
 app.get("/health", (req, res) => res.send("Server is healthy"));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`✅ Vision Build SDK backend running on port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Vision Build backend (fetch) running on port ${PORT}`));
