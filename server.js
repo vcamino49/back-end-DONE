@@ -18,8 +18,8 @@ app.post("/api/generate", async (req, res) => {
   const { prompt } = req.body;
   if (!prompt) return res.status(400).json({ error: "Prompt is required" });
 
-  // Add realism prompt wrapper
-  const enhancedPrompt = `A realistic high-resolution photograph of ${prompt}`;
+  // Updated prefix for ultra-realistic photography
+  const enhancedPrompt = `A high-resolution ultra-realistic DSLR photograph, natural lighting, 35mm lens, sharp focus, detailed textures, of ${prompt}`;
 
   try {
     const aiResponse = await openai.images.generate({
@@ -32,7 +32,7 @@ app.post("/api/generate", async (req, res) => {
     const imageUrl = aiResponse.data[0].url;
 
     res.json({
-      text: `Generated image for: "${enhancedPrompt}"`,
+      text: `Generated ultra-realistic image for: "${prompt}"`,
       image_url: imageUrl
     });
   } catch (error) {
