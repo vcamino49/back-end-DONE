@@ -1,5 +1,5 @@
 {
-  "name": "vision-builder-backend-photo",
+  "name": "vision-builder-backend-chatgpt-style",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
