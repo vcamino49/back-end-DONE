@@ -1,5 +1,5 @@
 {
-  "name": "vision-build-backend-clean",
+  "name": "vision-builder-backend-dalle3",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {

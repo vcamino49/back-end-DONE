@@ -23,7 +23,7 @@ async function upscaleImage(imageUrl) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      "version": "f121d640bd286e1fdc67f9799164c1d5be36ff74576ee11c803ae5b665dd46aa",
+      version: "f121d640bd286e1fdc67f9799164c1d5be36ff74576ee11c803ae5b665dd46aa",
       input: { image: imageUrl }
     })
   });
@@ -89,4 +89,4 @@ app.post("/api/upload", upload.single("file"), (req, res) => {
 app.get("/health", (req, res) => res.send("Server is healthy"));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`✅ Vision Build backend (fetch) running on port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Vision Builder backend running on port ${PORT}`));
