@@ -1,3 +1,4 @@
+
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
@@ -14,21 +15,23 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Simulate ChatGPT-style prompt modifiers
-function formatPrompt(userPrompt) {
-  return `A high-resolution ultra-realistic DSLR photograph, natural lighting, 35mm lens, shallow depth of field, studio-quality composition, richly detailed, sharp textures, dynamic range, of ${userPrompt}`;
+function formatPrompt(prompt, mode) {
+  if (mode === "stylized") {
+    return `Concept art, cinematic lighting, dynamic composition, trending on ArtStation, digital painting of ${prompt}`;
+  } else {
+    return `An ultra-realistic DSLR photo, sharp detail, high dynamic range, natural lighting, 35mm lens, of ${prompt}. Shot on Canon EOS R5, f/2.8, ISO 100, photorealistic.`;
+  }
 }
 
 app.post("/api/generate", async (req, res) => {
-  const { prompt, history } = req.body;
+  const { prompt, history, mode = "realistic" } = req.body;
   if (!prompt) return res.status(400).json({ error: "Prompt is required" });
 
-  // Combine previous context if available
   const basePrompt = history
     ? history + "\nFollow-up: " + prompt
     : prompt;
 
-  const finalPrompt = formatPrompt(basePrompt);
+  const finalPrompt = formatPrompt(basePrompt, mode);
 
   try {
     const aiResponse = await openai.images.generate({
@@ -41,7 +44,7 @@ app.post("/api/generate", async (req, res) => {
     const imageUrl = aiResponse.data[0].url;
 
     res.json({
-      text: `Generated image for: "${prompt}"`,
+      text: `Generated ${mode} image for: "${prompt}"`,
       image_url: imageUrl
     });
   } catch (error) {
@@ -59,4 +62,4 @@ app.post("/api/upload", upload.single("file"), (req, res) => {
 app.get("/health", (req, res) => res.send("Server is healthy"));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`✅ Vision Builder backend (ChatGPT-style prompts) running on port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Vision Builder backend with rendering modes running on port ${PORT}`));
