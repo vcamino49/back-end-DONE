@@ -1,4 +1,3 @@
-
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
@@ -15,23 +14,19 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-function formatPrompt(prompt, mode) {
-  if (mode === "stylized") {
-    return `Concept art, cinematic lighting, dynamic composition, trending on ArtStation, digital painting of ${prompt}`;
-  } else {
-    return `An ultra-realistic DSLR photo, sharp detail, high dynamic range, natural lighting, 35mm lens, of ${prompt}. Shot on Canon EOS R5, f/2.8, ISO 100, photorealistic.`;
-  }
+function formatPrompt(prompt) {
+  return `A high-resolution ultra-realistic DSLR photo, natural lighting, 35mm lens, sharp textures, dynamic range, of ${prompt}. Shot on Canon EOS R5.`;
 }
 
 app.post("/api/generate", async (req, res) => {
-  const { prompt, history, mode = "realistic" } = req.body;
+  const { prompt, history } = req.body;
   if (!prompt) return res.status(400).json({ error: "Prompt is required" });
 
   const basePrompt = history
     ? history + "\nFollow-up: " + prompt
     : prompt;
 
-  const finalPrompt = formatPrompt(basePrompt, mode);
+  const finalPrompt = formatPrompt(basePrompt);
 
   try {
     const aiResponse = await openai.images.generate({
@@ -44,7 +39,7 @@ app.post("/api/generate", async (req, res) => {
     const imageUrl = aiResponse.data[0].url;
 
     res.json({
-      text: `Generated ${mode} image for: "${prompt}"`,
+      text: `Generated image for: "${prompt}"`,
       image_url: imageUrl
     });
   } catch (error) {
@@ -62,4 +57,4 @@ app.post("/api/upload", upload.single("file"), (req, res) => {
 app.get("/health", (req, res) => res.send("Server is healthy"));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`✅ Vision Builder backend with rendering modes running on port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ ChatGPT-style backend running on port ${PORT}`));

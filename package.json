@@ -1,6 +1,5 @@
-
 {
-  "name": "vision-builder-backend-modes",
+  "name": "vision-builder-backend-chatgpt-exact",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
