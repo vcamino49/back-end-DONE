@@ -1,5 +1,6 @@
+
 {
-  "name": "vision-builder-backend-chatgpt-exact",
+  "name": "vision-builder-backend-chatgpt-clone",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {

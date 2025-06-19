@@ -15,23 +15,21 @@ const openai = new OpenAI({
 });
 
 function formatPrompt(prompt) {
-  return `A high-resolution ultra-realistic DSLR photo, natural lighting, 35mm lens, sharp textures, dynamic range, of ${prompt}. Shot on Canon EOS R5.`;
+  return `A high-resolution ultra-realistic DSLR photograph, natural lighting, 35mm lens, sharp focus, detailed textures, of ${prompt}. Shot on Canon EOS R5, ISO 100, f/2.8, photorealistic.`;
 }
 
 app.post("/api/generate", async (req, res) => {
   const { prompt, history } = req.body;
   if (!prompt) return res.status(400).json({ error: "Prompt is required" });
 
-  const basePrompt = history
-    ? history + "\nFollow-up: " + prompt
-    : prompt;
-
-  const finalPrompt = formatPrompt(basePrompt);
+  const combinedPrompt = history
+    ? formatPrompt(history + ". " + prompt)
+    : formatPrompt(prompt);
 
   try {
     const aiResponse = await openai.images.generate({
       model: "dall-e-3",
-      prompt: finalPrompt,
+      prompt: combinedPrompt,
       n: 1,
       size: "1024x1024"
     });
@@ -57,4 +55,4 @@ app.post("/api/upload", upload.single("file"), (req, res) => {
 app.get("/health", (req, res) => res.send("Server is healthy"));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`✅ ChatGPT-style backend running on port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ ChatGPT-clone backend running on port ${PORT}`));
